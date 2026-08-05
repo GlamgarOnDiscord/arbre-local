@@ -4,7 +4,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { RecherchePanel } from "@/components/recherche-panel";
 import { ArbrePanel } from "@/components/arbre-panel";
-import { Search, TreeDeciduous } from "lucide-react";
+import { FavorisPanel } from "@/components/favoris-panel";
+import { AnnuairePanel } from "@/components/annuaire-panel";
+import { Search, TreeDeciduous, Bookmark, Landmark } from "lucide-react";
 
 export default function Page() {
   return (
@@ -40,23 +42,51 @@ export default function Page() {
               <TreeDeciduous />
               Mon arbre
             </TabsTrigger>
+            <TabsTrigger value="favoris">
+              <Bookmark />
+              Favoris
+            </TabsTrigger>
+            <TabsTrigger value="archives">
+              <Landmark />
+              Archives
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="recherche" className="mt-6">
+          <TabsContent
+            value="recherche"
+            className="mt-6 animate-in fade-in duration-300"
+          >
             <RecherchePanel />
           </TabsContent>
-          <TabsContent value="arbre" className="mt-6">
+          <TabsContent
+            value="arbre"
+            className="mt-6 animate-in fade-in duration-300"
+          >
             <ArbrePanel />
+          </TabsContent>
+          <TabsContent
+            value="favoris"
+            className="mt-6 animate-in fade-in duration-300"
+          >
+            <FavorisPanel />
+          </TabsContent>
+          <TabsContent
+            value="archives"
+            className="mt-6 animate-in fade-in duration-300"
+          >
+            <AnnuairePanel />
           </TabsContent>
         </Tabs>
 
         <footer className="mt-10 border-t pt-4 text-xs leading-relaxed text-muted-foreground/80">
           <p>
             Base des décès survenus en France depuis 1970 (INSEE /
-            data.gouv.fr, Licence Ouverte 2.0). Noms de communes de décès
-            résolus via le Code Officiel Géographique de l&apos;INSEE.
-            Couverture : décès uniquement, pas de naissances ni de mariages.
-            Les liens de parenté affichés ou ajoutés dans « Mon arbre » sont
-            déduits ou saisis par vous, jamais donnés par la source.
+            data.gouv.fr, Licence Ouverte 2.0). Noms de communes de décès et
+            services d&apos;archives résolus via le Code Officiel
+            Géographique et l&apos;annuaire FranceArchives de l&apos;INSEE et
+            du Ministère de la Culture. Couverture : décès uniquement, pas de
+            naissances ni de mariages. Les liens de parenté affichés ou
+            ajoutés dans « Mon arbre » sont déduits ou saisis par vous,
+            jamais donnés par la source.
           </p>
         </footer>
       </main>

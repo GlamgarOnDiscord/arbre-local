@@ -12,42 +12,66 @@ Ce dépôt contient maintenant une implémentation complète du pipeline et du
 site décrits ci-dessous :
 
 - **`site/`** — application Next.js, interface shadcn/ui (thème clair/sombre,
-  composants Base UI). Deux onglets :
+  composants Base UI, micro-interactions). Quatre onglets :
   - **Recherche** — nom/prénom, filtres (années, commune, département),
-    tableau de résultats avec commune de décès résolue (voir plus bas),
-    bouton « Demander l'acte » (mailto vers les Archives départementales),
-    bouton « Remonter d'une génération », fil de navigation, et un bouton
-    « Ajouter à l'arbre » sur chaque résultat.
+    estimation de la période de naissance à partir du prénom (fichier des
+    prénoms INSEE, voir plus bas), tableau de résultats avec commune de
+    décès résolue, bouton « Demander l'acte » (mailto vers les Archives
+    départementales), bouton « Remonter d'une génération », bouton
+    « Ajouter aux favoris », bouton « Ajouter à l'arbre », fil de
+    navigation.
   - **Mon arbre** — un arbre généalogique ascendant, éditable : ajoutez un
     point de départ (une personne que vous connaissez), puis remontez
     père/mère génération après génération, soit en cherchant dans la base
     des décès, soit en saisissant les informations à la main (utile pour
     les décès antérieurs à 1970, hors champ de la base). Rendu en
-    pedigree-chart avec connecteurs CSS. **Stocké uniquement dans
-    IndexedDB, dans le navigateur** — jamais envoyé nulle part, comme le
-    reste du site.
+    pedigree-chart avec connecteurs CSS.
+  - **Favoris** — des résultats mis de côté comme « pistes à vérifier »,
+    avec une note libre, sans engagement de les ajouter formellement à
+    l'arbre.
+  - **Archives** — l'annuaire complet des ~1 300 services d'archives
+    français (départementales, municipales, régionales, nationales),
+    cherchable par nom, ville ou département, avec mailto/téléphone/site
+    directs.
 
-  Moteur SQL DuckDB-WASM entièrement auto-hébergé (aucun appel à un CDN
-  tiers ni à `extensions.duckdb.org`).
+  « Mon arbre » et « Favoris » sont **stockés uniquement dans IndexedDB,
+  dans le navigateur** — jamais envoyés nulle part, comme le reste du
+  site. Moteur SQL DuckDB-WASM entièrement auto-hébergé (aucun appel à un
+  CDN tiers ni à `extensions.duckdb.org`).
 - **`site/public/parts/`** — les 29 305 897 lignes du fichier des décès
   (INSEE, filtré `opposition=false`, trié, ~583 Mo), partitionnées par
   première lettre du nom et déjà prêtes à l'emploi.
 - **Résolution des communes de décès** — le fichier des décès ne fournit
   qu'un code INSEE pour la commune de décès, sans libellé (limite décrite
-  plus bas). Le site embarque désormais le **Code Officiel Géographique**
-  de l'INSEE (`site/app/data/communes.json`, communes depuis 1943 fusionné
+  plus bas). Le site embarque le **Code Officiel Géographique** de
+  l'INSEE (`site/app/data/communes.json`, communes depuis 1943 fusionné
   avec le millésime 2026, ~39 000 entrées) pour afficher un nom de commune
   lisible à la place du code brut.
+- **Annuaire des archives (`site/app/data/annuaire-archives.json`)** —
+  1 293 services d'archives (toutes catégories, avec courriel ou site),
+  extraits de l'annuaire FranceArchives du Ministère de la Culture.
+- **Fichier des prénoms INSEE (`site/app/data/prenoms.json`)** — 6 740
+  prénoms (naissances 1900-2022, France entière), agrégés en trois
+  percentiles d'années (15 %, médiane, 85 %) pour estimer une période de
+  naissance plausible à partir d'un seul prénom.
 - **`data-pipeline/`** — scripts et fichiers source du pipeline (non
   commités : voir `.gitignore`), pour rejouer la mise à jour mensuelle.
 
 ### Pistes non retenues pour l'instant
 
 - **Morts pour la France 1914-1918** (Mémoire des Hommes) : base
-  téléchargeable (56 fichiers CSV par lettre), mais le certificat TLS du
-  site `memoiredeshommes.sga.defense.gouv.fr` était expiré au moment du
-  développement — intégration reportée pour ne pas dépendre d'une source
-  indisponible en HTTPS valide. À réessayer.
+  téléchargeable (56 fichiers CSV par lettre, ~1,3 M de décès), mais la
+  liste des fichiers est chargée dynamiquement en JavaScript après la
+  page de téléchargement — son point d'entrée réel (API/endpoint) n'a
+  pas pu être identifié depuis cet environnement (le navigateur headless
+  utilisé pour l'inspecter ne pouvait pas non plus atteindre le site,
+  limite du bac à sable de développement plutôt que du site lui-même).
+  Le sous-domaine historique `memoiredeshommes.sga.defense.gouv.fr` a par
+  ailleurs un certificat TLS expiré ; le nouveau domaine
+  `memoiredeshommes.defense.gouv.fr` est valide mais ne référence pas
+  encore de lien de téléchargement direct dans son HTML statique. À
+  réessayer, idéalement en inspectant le trafic réseau depuis un vrai
+  navigateur.
 - **Socface (recensements 1836-1936, 291 M lignes, relations au chef de
   ménage)** : la source la plus prometteuse pour de vrais liens familiaux,
   mais pas encore diffusée publiquement (voir section « Aller plus loin »

@@ -24,6 +24,7 @@ import {
   ExternalLink,
   TreePine,
   ChevronRight,
+  Bookmark,
 } from "lucide-react";
 import { getDB } from "@/app/lib/duckdb";
 import {
@@ -34,7 +35,15 @@ import {
 } from "@/app/lib/search";
 import { construireMailto, formatDateFr, acteEstRecent } from "@/app/lib/acte";
 import { resoudreCommune } from "@/app/lib/communes";
+import { estimerAnnees } from "@/app/lib/prenoms";
 import { ajouterPersonne } from "@/app/lib/arbre";
+import {
+  ajouterFavori,
+  chargerFavoris,
+  retirerFavoriParSignature,
+  signaturePersonne,
+  signatureFavori,
+} from "@/app/lib/favoris";
 import { cn } from "@/lib/utils";
 
 interface Etape {
@@ -61,6 +70,9 @@ export function RecherchePanel() {
 
   const [historique, setHistorique] = useState<Etape[]>([]);
   const [ajoutes, setAjoutes] = useState<Set<string>>(new Set());
+  const [favoris, setFavoris] = useState<Set<string>>(new Set());
+
+  const estimationPrenom = prenom.trim() ? estimerAnnees(prenom) : null;
 
   const rechercheEnCours = useRef(0);
 
@@ -87,6 +99,13 @@ export function RecherchePanel() {
       if (id !== rechercheEnCours.current) return;
       setResultats(r.personnes);
       setTotal(r.total);
+      const favorisExistants = await chargerFavoris();
+      const sigsExistants = new Set(favorisExistants.map(signatureFavori));
+      setFavoris(
+        new Set(
+          r.personnes.map(signature).filter((s) => sigsExistants.has(s))
+        )
+      );
       if (!depuisHistorique) {
         setHistorique((h) => [...h, { filtres: f, label }]);
       }
@@ -137,9 +156,7 @@ export function RecherchePanel() {
     lancerRecherche(etape.filtres, etape.label, true);
   }
 
-  function signature(p: Personne): string {
-    return `${p.nom}|${p.prenoms}|${p.date_naissance}|${p.numero_acte_deces}`;
-  }
+  const signature = signaturePersonne;
 
   async function ajouterALarbre(p: Personne) {
     await ajouterPersonne({
@@ -157,6 +174,25 @@ export function RecherchePanel() {
     toast.success("Ajouté(e) à l'arbre", {
       description: `${p.nom} ${p.prenoms} — voir l'onglet « Mon arbre ».`,
     });
+  }
+
+  async function toggleFavori(p: Personne) {
+    const sig = signature(p);
+    if (favoris.has(sig)) {
+      await retirerFavoriParSignature(p);
+      setFavoris((s) => {
+        const next = new Set(s);
+        next.delete(sig);
+        return next;
+      });
+      toast("Retiré des favoris");
+    } else {
+      await ajouterFavori(p);
+      setFavoris((s) => new Set(s).add(sig));
+      toast.success("Ajouté aux favoris", {
+        description: `${p.nom} ${p.prenoms} — voir l'onglet « Favoris ».`,
+      });
+    }
   }
 
   return (
@@ -188,6 +224,12 @@ export function RecherchePanel() {
                 placeholder="Jean (optionnel)"
                 autoComplete="off"
               />
+              {estimationPrenom && (
+                <p className="animate-in fade-in mt-1 text-xs text-muted-foreground duration-300">
+                  Surtout donné entre {estimationPrenom.anneeDe} et{" "}
+                  {estimationPrenom.anneeA} (INSEE, prénoms depuis 1900)
+                </p>
+              )}
             </div>
           </div>
 
@@ -206,7 +248,7 @@ export function RecherchePanel() {
           </button>
 
           {filtresOuverts && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="animate-in fade-in slide-in-from-top-1 grid grid-cols-2 gap-3 duration-200 sm:grid-cols-4">
               <div>
                 <Label htmlFor="anneeDe" className="mb-1.5 text-xs">
                   Né(e) après
@@ -315,7 +357,7 @@ export function RecherchePanel() {
           </p>
 
           {resultats.length > 0 && (
-            <Card className="py-0">
+            <Card className="animate-in fade-in slide-in-from-bottom-1 py-0 duration-300">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -356,7 +398,12 @@ export function RecherchePanel() {
                         <TableCell>
                           <div className="flex items-center justify-end gap-1">
                             {ajoutes.has(signature(p)) ? (
-                              <Badge variant="success">Ajouté</Badge>
+                              <Badge
+                                variant="success"
+                                className="animate-in zoom-in-50 fade-in"
+                              >
+                                Ajouté
+                              </Badge>
                             ) : (
                               <Button
                                 variant="ghost"
@@ -367,6 +414,24 @@ export function RecherchePanel() {
                                 <TreePine />
                               </Button>
                             )}
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              title={
+                                favoris.has(signature(p))
+                                  ? "Retirer des favoris"
+                                  : "Ajouter aux favoris"
+                              }
+                              onClick={() => toggleFavori(p)}
+                            >
+                              <Bookmark
+                                className={cn(
+                                  "transition-all",
+                                  favoris.has(signature(p)) &&
+                                    "fill-current text-primary"
+                                )}
+                              />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon-sm"

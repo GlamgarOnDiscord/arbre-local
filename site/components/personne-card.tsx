@@ -25,7 +25,7 @@ export function PersonneCard({
   ].join(" – ");
 
   return (
-    <Card className="w-52 gap-2 px-3 py-3 text-left shadow-sm">
+    <Card className="animate-in fade-in zoom-in-95 w-52 gap-2 px-3 py-3 text-left shadow-sm transition-shadow duration-300 hover:shadow-md">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate font-medium leading-tight">{personne.nom}</p>

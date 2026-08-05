@@ -22,7 +22,7 @@ function BoutonAjouterParent({
       <Button
         variant="outline"
         size="sm"
-        className="h-auto w-52 flex-col gap-1 border-dashed py-4 text-muted-foreground"
+        className="h-auto w-52 flex-col gap-1 border-dashed py-4 text-muted-foreground transition-all duration-200 hover:scale-[1.03] hover:border-foreground/30 hover:text-foreground"
         onClick={() => setOpen(true)}
       >
         <UserPlus className="size-4" />
