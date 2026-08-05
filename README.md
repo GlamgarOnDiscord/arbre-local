@@ -6,6 +6,56 @@ Aucun serveur applicatif. Aucune base de données à administrer. Aucun compte u
 
 ---
 
+## Le site est prêt dans `site/`
+
+Ce dépôt contient maintenant une implémentation complète du pipeline et du
+site décrits ci-dessous :
+
+- **`site/`** — application Next.js. Recherche par nom/prénom, filtres
+  (années, commune, département), tableau de résultats, bouton « Demander
+  l'acte » (mailto vers les Archives départementales), bouton « Remonter
+  d'une génération », fil de navigation. Moteur SQL DuckDB-WASM auto-hébergé
+  (aucun appel à un CDN tiers ni à `extensions.duckdb.org`).
+- **`site/public/parts/`** — les 29 305 897 lignes du fichier des décès
+  (INSEE, filtré `opposition=false`, trié, ~583 Mo), partitionnées par
+  première lettre du nom et déjà prêtes à l'emploi.
+- **`data-pipeline/`** — scripts et fichiers source du pipeline (non
+  commités : voir `.gitignore`), pour rejouer la mise à jour mensuelle.
+
+### Déployer sur Vercel
+
+1. Sur [vercel.com/new](https://vercel.com/new), importez ce dépôt GitHub.
+2. **Root Directory : `site`** (c'est le seul réglage à changer — Vercel
+   détecte Next.js automatiquement).
+3. Déployez.
+
+### À vérifier après déploiement
+
+Ce projet mise sur le fait que le navigateur ne télécharge que quelques
+Mo par recherche via des requêtes HTTP `Range` (voir « Comment ça marche »
+ci-dessous). En local, DuckDB-WASM s'est parfois rabattu sur un
+téléchargement intégral de la partition ciblée (20 à 80 Mo selon la
+lettre) plutôt que des requêtes par plage, un comportement documenté comme
+inconstant selon l'hébergeur ([discussion duckdb-wasm #1944](https://github.com/duckdb/duckdb-wasm/discussions/1944)).
+Le comportement réel sur le CDN de Vercel n'a pas pu être vérifié depuis cet
+environnement (pas d'accès à un déploiement Vercel réel). Une fois en ligne,
+ouvrez F12 → Réseau → lancez une recherche :
+
+- Si les requêtes vers `data.parquet` portent un en-tête `Range: bytes=…`
+  → l'architecture fonctionne comme prévu, quelques Mo par recherche.
+- Si le fichier entier de la partition est retéléchargé à chaque
+  recherche → la recherche reste privée et correcte (aucune donnée
+  n'est envoyée), mais moins économe en bande passante que prévu. Dans ce
+  cas, héberger `public/parts/` sur Cloudflare R2 ou S3 (Étape 4
+  ci-dessous) au lieu du hosting statique Vercel est l'alternative
+  recommandée.
+
+Le dépôt GitHub est resté **public** dans cette session (pas d'outil
+disponible ici pour changer sa visibilité) — à basculer en privé depuis
+GitHub → Settings → Danger Zone si besoin.
+
+---
+
 ## Sommaire
 
 - [Pourquoi ce projet](#pourquoi-ce-projet)

@@ -1,0 +1,3 @@
+# Fichiers sources bruts et intermédiaires du pipeline de données
+# (le résultat final utilisé par le site est dans site/public/parts)
+/data-pipeline/
