@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 const subscribeJamais = () => () => {};
 
@@ -20,20 +20,18 @@ function useMonte() {
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const monte = useMonte();
-
-  if (!monte) {
-    return <Button variant="ghost" size="icon" aria-label="Changer de thème" />;
-  }
+  const sombre = monte && theme === "dark";
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      aria-label="Changer de thème"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-    >
-      <Sun className="size-4 scale-100 dark:scale-0 transition-transform" />
-      <Moon className="absolute size-4 scale-0 dark:scale-100 transition-transform" />
-    </Button>
+    <label className="flex items-center gap-2 text-label text-muted-foreground">
+      <Sun className="size-3.5" />
+      <Switch
+        checked={sombre}
+        disabled={!monte}
+        onCheckedChange={(v) => setTheme(v ? "dark" : "light")}
+        aria-label="Changer de thème"
+      />
+      <Moon className="size-3.5" />
+    </label>
   );
 }

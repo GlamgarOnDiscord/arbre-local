@@ -60,6 +60,7 @@ export function RecherchePanel() {
   const [aRecherche, setARecherche] = useState(false);
 
   const [historique, setHistorique] = useState<Etape[]>([]);
+  const [ajoutes, setAjoutes] = useState<Set<string>>(new Set());
 
   const rechercheEnCours = useRef(0);
 
@@ -136,6 +137,10 @@ export function RecherchePanel() {
     lancerRecherche(etape.filtres, etape.label, true);
   }
 
+  function signature(p: Personne): string {
+    return `${p.nom}|${p.prenoms}|${p.date_naissance}|${p.numero_acte_deces}`;
+  }
+
   async function ajouterALarbre(p: Personne) {
     await ajouterPersonne({
       nom: p.nom,
@@ -148,6 +153,7 @@ export function RecherchePanel() {
       codeInseeDeces: p.code_insee_deces,
       numeroActeDeces: p.numero_acte_deces,
     });
+    setAjoutes((s) => new Set(s).add(signature(p)));
     toast.success("Ajouté(e) à l'arbre", {
       description: `${p.nom} ${p.prenoms} — voir l'onglet « Mon arbre ».`,
     });
@@ -348,15 +354,19 @@ export function RecherchePanel() {
                           {communeDeces ?? "—"}
                         </TableCell>
                         <TableCell>
-                          <div className="flex justify-end gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              title="Ajouter à l'arbre"
-                              onClick={() => ajouterALarbre(p)}
-                            >
-                              <TreePine />
-                            </Button>
+                          <div className="flex items-center justify-end gap-1">
+                            {ajoutes.has(signature(p)) ? (
+                              <Badge variant="success">Ajouté</Badge>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                title="Ajouter à l'arbre"
+                                onClick={() => ajouterALarbre(p)}
+                              >
+                                <TreePine />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="icon-sm"

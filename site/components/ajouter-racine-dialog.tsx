@@ -171,7 +171,7 @@ export function AjouterRacineDialog({ onAjoute }: { onAjoute: () => void }) {
                   <button
                     key={i}
                     onClick={() => choisir(p)}
-                    className="w-full rounded-lg border bg-card px-3 py-2 text-left text-sm hover:bg-muted"
+                    className="min-h-10 w-full rounded-lg border bg-card px-3 py-2 text-left text-sm hover:bg-muted"
                   >
                     <span className="font-medium">
                       {p.nom} {p.prenoms}
